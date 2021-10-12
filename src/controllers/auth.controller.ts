@@ -1,15 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
+import { User } from '@prisma/client';
 import passport from 'passport';
-import { User } from '../entities';
 import { createToken } from '../lib/jwt';
 import { UnauthorizedError, DuplicateFieldError } from '../utils/custom-error';
 import catchErrors from '../utils/catch-errors';
 
 const sendResponse = (user: User, res: Response) => {
-  user.password = undefined;
   const token = createToken(user.id);
   res.status(200).json({ user, token });
 };
+
+export const getMe = catchErrors(async (req: Request, res: Response) => {
+  res.status(200).json({ user: req.user });
+});
 
 export const login = catchErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +21,6 @@ export const login = catchErrors(
       { session: false },
       function (err, user, info) {
         if (err) {
-          console.log(err);
           return next(err);
         }
 

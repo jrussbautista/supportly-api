@@ -1,7 +1,9 @@
 import passport from 'passport';
 import { Strategy as localStrategy } from 'passport-local';
 import { Strategy as JWTstrategy, ExtractJwt } from 'passport-jwt';
-import { User } from '../entities/User';
+import bcrypt from 'bcryptjs';
+
+import { prisma } from './prisma';
 
 //This verifies that the token sent by the user is valid
 passport.use(
@@ -12,8 +14,18 @@ passport.use(
     },
     async (token, done) => {
       try {
-        const { user_id } = token;
-        const user = await User.findOne(user_id);
+        const { userId } = token;
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        });
+
         if (!user) return done(null, false, 'User not found');
         //Pass the user details to the next middleware
         return done(null, user);
@@ -36,24 +48,29 @@ passport.use(
       try {
         const { firstName, lastName } = req.body;
 
-        let user = await User.findOne({ email: email.toLowerCase() });
+        let user = await prisma.user.findUnique({
+          where: { email: email.toLowerCase() },
+        });
 
         if (user) {
           return done(null, false, { message: 'Email is already taken' });
         }
 
-        user = new User();
+        const hashPassword = bcrypt.hashSync(password, 8);
 
-        user.firstName = firstName;
-        user.lastName = lastName;
-        user.email = email;
-        user.password = password;
+        user = await prisma.user.create({
+          data: {
+            firstName,
+            lastName,
+            email,
+            password: hashPassword,
+            role: 'USER',
+          },
+        });
 
-        user.hashPassword();
+        const { password: userPassword, ...rest } = user;
 
-        await user.save();
-        //Send the user information to the next middleware
-        return done(null, user);
+        return done(null, rest);
       } catch (error) {
         done(error);
       }
@@ -70,21 +87,26 @@ passport.use(
     },
     async (email, password, done) => {
       try {
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
           return done(null, false, {
             message: 'Email or Password is incorrect',
           });
         }
 
-        const isPasswordMatch = user.checkPassword(password);
+        const isPasswordMatch = bcrypt.compareSync(
+          password,
+          user.password || ''
+        );
         if (!isPasswordMatch) {
           return done(null, false, {
             message: 'Email or password is incorrect',
           });
         }
 
-        return done(null, user);
+        const { password: userPassword, ...rest } = user;
+
+        return done(null, rest);
       } catch (error) {
         return done(error);
       }

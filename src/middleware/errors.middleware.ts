@@ -3,6 +3,8 @@ import { ErrorRequestHandler } from 'express';
 import { CustomError } from '../utils/custom-error';
 
 const handleError: ErrorRequestHandler = (error, _req, res, _next) => {
+  console.log(error);
+
   const isErrorSafeForClient = error instanceof CustomError;
 
   const clientError = isErrorSafeForClient
@@ -19,7 +21,7 @@ const handleError: ErrorRequestHandler = (error, _req, res, _next) => {
         data: {},
       };
 
-  res.status(clientError.status).send({ error: clientError });
+  res.status(clientError.status).send(clientError);
 };
 
 export default handleError;

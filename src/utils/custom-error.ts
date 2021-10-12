@@ -27,6 +27,12 @@ export class UnauthorizedError extends CustomError {
   }
 }
 
+export class ForbiddenError extends CustomError {
+  constructor(message: string) {
+    super(message, 'FORBIDDEN', 403);
+  }
+}
+
 export class RouteNotFoundError extends CustomError {
   constructor(originalUrl: string) {
     super(`Route '${originalUrl}' does not exist.`, 'ROUTE_NOT_FOUND', 404);
