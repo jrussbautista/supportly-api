@@ -4,7 +4,8 @@ import passport from 'passport';
 import cors from 'cors';
 
 import authRoutes from './routes/auth.route';
-import ticketRoutes from './routes/account/tickets.route';
+import ticketRoutes from './routes/tickets.route';
+
 import errorHandler from './middleware/errors.middleware';
 import { prisma } from './lib/prisma';
 
@@ -18,7 +19,7 @@ const main = async () => {
   app.use(express.json());
   app.use(passport.initialize());
   app.use('/api/auth', authRoutes);
-  app.use('/api/account/tickets', ticketRoutes);
+  app.use('/api/tickets', ticketRoutes);
   app.use(errorHandler);
 
   app.listen(port, () => {

@@ -1,6 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
 import passport from 'passport';
-import { UnauthorizedError } from '../utils/custom-error';
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   return passport.authenticate(
@@ -11,7 +10,11 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
         return next(info);
       }
       if (!user) {
-        throw new UnauthorizedError('Not Authorized');
+        return res.status(401).json({
+          message: 'Not Authorized',
+          code: 'UNAUTHORIZED',
+          status: 401,
+        });
       }
 
       user.password = undefined;
