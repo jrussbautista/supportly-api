@@ -5,19 +5,19 @@ import { deleteTicket } from '../controllers/tickets/delete-ticket';
 import { getTicket } from '../controllers/tickets/get-ticket';
 import { getTickets } from '../controllers/tickets/get-tickets';
 import { assignTicket } from '../controllers/tickets/assign-ticket';
-import { checkAuth } from '../middleware/auth.middleware';
+import { checkAuth, restrictTo } from '../middleware/auth.middleware';
 import { getMyTickets } from '../controllers/tickets/get-my-tickets';
 
 const router = Router();
 
 router.use(checkAuth);
 
-router.route('/').get(getTickets);
-router.route('/').post(addTicket);
-router.route('/mine').get(getMyTickets);
-router.route('/:id').get(getTicket);
-router.route('/:id').put(updateTicket);
-router.route('/:id').delete(deleteTicket);
-router.route('/:id/assign').post(assignTicket);
+router.route('/').get(restrictTo('ADMIN'), getTickets);
+router.route('/').post(restrictTo('USER', 'ADMIN'), addTicket);
+router.route('/mine').get(restrictTo('USER', 'ADMIN'), getMyTickets);
+router.route('/:id').get(restrictTo('USER', 'ADMIN'), getTicket);
+router.route('/:id').put(restrictTo('USER', 'ADMIN'), updateTicket);
+router.route('/:id').delete(restrictTo('USER', 'ADMIN'), deleteTicket);
+router.route('/:id/assign').post(restrictTo('ADMIN'), assignTicket);
 
 export default router;

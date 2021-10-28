@@ -32,7 +32,7 @@ export const getTicket = catchErrors(async (req: Request, res: Response) => {
     throw new EntityNotFoundError('Ticket');
   }
 
-  if (user.id !== ticket.userId) {
+  if (user.id !== ticket.userId && user.role !== 'ADMIN') {
     throw new ForbiddenError('You are not allowed to perform this action.');
   }
 

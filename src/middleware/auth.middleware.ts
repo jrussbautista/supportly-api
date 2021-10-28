@@ -1,6 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 import passport from 'passport';
 
+import { User } from '.prisma/client';
+import { UnauthorizedError } from '../utils/custom-error';
+
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   return passport.authenticate(
     'jwt',
@@ -23,4 +26,19 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
       return next();
     }
   )(req, res, next);
+};
+
+export const restrictTo = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user as User;
+
+    if (!roles.includes(user.role)) {
+      return next(
+        new UnauthorizedError(
+          'You do not have permission to perform this action'
+        )
+      );
+    }
+    next();
+  };
 };

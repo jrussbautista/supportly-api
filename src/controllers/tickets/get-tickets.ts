@@ -13,11 +13,16 @@ export const getTickets = catchErrors(async (req: Request, res: Response) => {
 
   const skip = (page - 1) * take;
 
-  const total = await prisma.ticket.count();
+  const where = {
+    deletedAt: null,
+  };
+
+  const total = await prisma.ticket.count({ where });
 
   const tickets = await prisma.ticket.findMany({
     take,
     skip,
+    where,
     include: {
       assignedTo: {
         select: {
